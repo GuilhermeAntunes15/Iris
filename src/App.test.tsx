@@ -1,0 +1,124 @@
+import { fireEvent, render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
+import { beforeEach, describe, expect, it } from "vitest";
+import App from "./App";
+
+describe("ÍRIS", () => {
+  beforeEach(() => localStorage.clear());
+
+  it("exibe a proposta de valor na landing page", () => {
+    render(
+      <MemoryRouter initialEntries={["/"]}>
+        <App />
+      </MemoryRouter>,
+    );
+    expect(
+      screen.getByRole("heading", {
+        name: /Seu próximo capítulo profissional começa aqui/i,
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it("carrega o perfil demonstrativo no painel", () => {
+    render(
+      <MemoryRouter initialEntries={["/inicio"]}>
+        <App />
+      </MemoryRouter>,
+    );
+    expect(
+      screen.getByRole("heading", { name: /Olá, Ana/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("redireciona uma rota inexistente", () => {
+    render(
+      <MemoryRouter initialEntries={["/rota-inexistente"]}>
+        <App />
+      </MemoryRouter>,
+    );
+    expect(
+      screen.getByRole("heading", {
+        name: /Seu próximo capítulo profissional começa aqui/i,
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it.each([
+    ["/curriculo", /CURRÍCULO/i],
+    ["/entrevista", /Conte um pouco sobre você/i],
+  ])("carrega a rota funcional %s", (route, content) => {
+    render(
+      <MemoryRouter initialEntries={[route]}>
+        <App />
+      </MemoryRouter>,
+    );
+    expect(screen.getAllByText(content).length).toBeGreaterThan(0);
+  });
+
+  it("abre um diálogo semântico de rotina e fecha com Escape", () => {
+    render(
+      <MemoryRouter initialEntries={["/rotina"]}>
+        <App />
+      </MemoryRouter>,
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: "Adicionar atividade" }),
+    );
+    expect(
+      screen.getByRole("dialog", { name: "Nova atividade" }),
+    ).toBeInTheDocument();
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("registra denúncia da comunidade no estado local", () => {
+    render(
+      <MemoryRouter initialEntries={["/comunidade"]}>
+        <App />
+      </MemoryRouter>,
+    );
+    fireEvent.click(screen.getAllByRole("button", { name: "Denunciar" })[0]);
+    expect(
+      screen.getByRole("button", { name: "Denúncia registrada" }),
+    ).toBeDisabled();
+  });
+
+  it("leva o resultado vocacional para os cursos", () => {
+    render(
+      <MemoryRouter initialEntries={["/carreira/resultado"]}>
+        <App />
+      </MemoryRouter>,
+    );
+    fireEvent.click(
+      screen.getAllByRole("button", { name: "Explorar cursos" })[0],
+    );
+    expect(
+      screen.getByRole("heading", {
+        name: /Oportunidades para experimentar caminhos/i,
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it("oferece exemplo completo de currículo e treino técnico por área", () => {
+    const { unmount } = render(
+      <MemoryRouter initialEntries={["/curriculo"]}>
+        <App />
+      </MemoryRouter>,
+    );
+    expect(
+      screen.getAllByText(/Página de apresentação responsiva/i).length,
+    ).toBeGreaterThan(0);
+    unmount();
+    render(
+      <MemoryRouter initialEntries={["/entrevista"]}>
+        <App />
+      </MemoryRouter>,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /Treino técnico/i }));
+    expect(
+      screen.getByRole("heading", {
+        name: /diferença entre HTML, CSS e JavaScript/i,
+      }),
+    ).toBeInTheDocument();
+  });
+});
