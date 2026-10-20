@@ -14,18 +14,24 @@ import {
   useNavigate,
 } from "react-router-dom";
 import {
+  ArrowRight,
   BriefcaseBusiness,
   CalendarDays,
-  ChevronRight,
   CircleUserRound,
   Compass,
+  GraduationCap,
   HeartHandshake,
   Home,
   Map,
   Menu,
   MessageCircle,
+  Moon,
+  Rocket,
   RotateCcw,
+  Search,
   Sparkles,
+  Sun,
+  UserRound,
   X,
 } from "lucide-react";
 import {
@@ -122,11 +128,16 @@ const nav = [
 
 function Logo({ large = false }: { large?: boolean }) {
   return (
-    <div className={`logo ${large ? "logo-large" : ""}`}>
-      <span>ÍRIS</span>
-      {large && (
-        <small>Tecnologia, oportunidades e futuro para mulheres.</small>
-      )}
+    <div className={`logo ${large ? "logo-large" : ""}`} aria-label="ÍRIS">
+      <span className="logo-mark" aria-hidden="true">
+        <i />
+      </span>
+      <span className="logo-copy">
+        <strong>ÍRIS</strong>
+        {large && (
+          <small>Tecnologia, oportunidades e futuro para mulheres.</small>
+        )}
+      </span>
     </div>
   );
 }
@@ -145,6 +156,33 @@ function Button({
   );
 }
 
+function ThemeToggle() {
+  const [dark, setDark] = useState(
+    () => document.documentElement.dataset.theme === "dark",
+  );
+  const toggle = () => {
+    const next = dark ? "light" : "dark";
+    document.documentElement.dataset.theme = next;
+    try {
+      localStorage.setItem("iris-theme", next);
+    } catch {
+      // armazenamento indisponível: a escolha vale só nesta sessão
+    }
+    setDark(!dark);
+  };
+  return (
+    <button
+      type="button"
+      className="theme-toggle"
+      onClick={toggle}
+      aria-label={dark ? "Ativar modo claro" : "Ativar modo escuro"}
+      title={dark ? "Modo claro" : "Modo escuro"}
+    >
+      {dark ? <Sun size={20} /> : <Moon size={20} />}
+    </button>
+  );
+}
+
 function PublicHeader() {
   return (
     <header className="public-header">
@@ -152,11 +190,13 @@ function PublicHeader() {
         <Logo />
       </NavLink>
       <nav aria-label="Navegação institucional">
+        <a href="/#desafio">O desafio</a>
         <a href="/#como">Como funciona</a>
         <a href="/#recursos">Recursos</a>
         <a href="/#sobre">Sobre</a>
       </nav>
       <div className="header-actions">
+        <ThemeToggle />
         <NavLink className="button secondary" to="/entrar">
           Entrar
         </NavLink>
@@ -168,160 +208,410 @@ function PublicHeader() {
   );
 }
 
-function Landing() {
+const difficulties = [
+  ["Não sei por onde começar", 47, "c-teal"],
+  ["Falta de informação sobre cursos", 38, "c-blue"],
+  ["Falta de orientação profissional", 30, "c-green"],
+  ["Falta de oportunidades", 26, "c-orange"],
+  ["Falta de confiança em si mesma", 22, "c-pink"],
+  ["Outros motivos", 10, "c-purple"],
+] as const;
+
+const journeyStages = [
+  ["Interesse", "Conte sua realidade, seu tempo e o que desperta sua curiosidade.", Sparkles, "c-blue"],
+  ["Informação", "Entenda as áreas da tecnologia sem jargão nem pressa.", Search, "c-teal"],
+  ["Orientação", "Descubra caminhos compatíveis com você.", Compass, "c-green"],
+  ["Formação", "Encontre cursos e apoios próximos e organize seus estudos.", GraduationCap, "c-orange"],
+  ["Oportunidade", "Prepare currículo e entrevista com apoio de mentoras.", BriefcaseBusiness, "c-pink"],
+  ["Entrada na área", "Dê o primeiro passo no mercado com uma comunidade por perto.", Rocket, "c-purple"],
+] as const;
+
+const resources = [
+  ["Carreira", "Um teste rápido de orientação para descobrir sua área.", "/carreira", Compass, "c-teal"],
+  ["Mapa de apoio", "Cursos e espaços demonstrativos perto de você.", "/mapa", Map, "c-blue"],
+  ["Rotina", "Um plano de estudos flexível que respeita a sua agenda.", "/rotina", CalendarDays, "c-green"],
+  ["Comunidade", "Troque dúvidas e conquistas com outras mulheres.", "/comunidade", MessageCircle, "c-orange"],
+  ["Mentorias", "Currículo, entrevistas e conversas com quem já está na área.", "/mentorias", HeartHandshake, "c-pink"],
+  ["Oportunidades", "Vagas e programas para quem está começando.", "/oportunidades", BriefcaseBusiness, "c-purple"],
+] as const;
+
+const v = (vars: Record<string, string | number>) => vars as React.CSSProperties;
+
+function CountUp({ to, decimals = 1 }: { to: number; decimals?: number }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const [value, setValue] = useState(to);
+  useEffect(() => {
+    const el = ref.current;
+    if (
+      !el ||
+      !("IntersectionObserver" in window) ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    )
+      return;
+    setValue(0);
+    let raf = 0;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        io.disconnect();
+        const start = performance.now();
+        const tick = (now: number) => {
+          const p = Math.min((now - start) / 1600, 1);
+          setValue(to * (1 - (1 - p) ** 3));
+          if (p < 1) raf = requestAnimationFrame(tick);
+        };
+        raf = requestAnimationFrame(tick);
+      },
+      { threshold: 0.6 },
+    );
+    io.observe(el);
+    return () => {
+      io.disconnect();
+      cancelAnimationFrame(raf);
+    };
+  }, [to]);
   return (
-    <div className="landing">
+    <span ref={ref}>
+      {value.toLocaleString("pt-BR", {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+      })}
+    </span>
+  );
+}
+
+function Landing() {
+  const rootRef = useRef<HTMLDivElement>(null);
+  const heroRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const root = rootRef.current;
+    const hero = heroRef.current;
+    if (!root || !hero) return;
+    const items = root.querySelectorAll<HTMLElement>("[data-reveal]");
+    const reduce =
+      !("IntersectionObserver" in window) ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) {
+      items.forEach((el) => el.classList.add("is-visible"));
+      return;
+    }
+    root.classList.add("motion-ready");
+    const io = new IntersectionObserver(
+      (entries) =>
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add("is-visible");
+          io.unobserve(entry.target);
+        }),
+      { threshold: 0.18, rootMargin: "0px 0px -6% 0px" },
+    );
+    items.forEach((el) => io.observe(el));
+
+    // Parallax leve das esferas — só com mouse; transform direto em cada camada.
+    const orbs = [...hero.querySelectorAll<HTMLElement>("[data-depth]")];
+    let raf = 0;
+    const move = (event: PointerEvent) => {
+      if (event.pointerType !== "mouse") return;
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const r = hero.getBoundingClientRect();
+        const x = (event.clientX - r.left) / r.width - 0.5;
+        const y = (event.clientY - r.top) / r.height - 0.5;
+        orbs.forEach((orb) => {
+          const d = Number(orb.dataset.depth);
+          orb.style.transform = `translate3d(${x * d}px, ${y * d}px, 0)`;
+        });
+      });
+    };
+    hero.addEventListener("pointermove", move);
+    return () => {
+      io.disconnect();
+      hero.removeEventListener("pointermove", move);
+      cancelAnimationFrame(raf);
+    };
+  }, []);
+
+  return (
+    <div className="landing" ref={rootRef}>
       <PublicHeader />
       <main>
-        <section className="hero">
-          <div>
-            <span className="eyebrow">
-              <Sparkles size={16} /> Um caminho possível, no seu ritmo
-            </span>
-            <Logo large />
-            <h1>
-              Íris: A comunidade que acompanha a sua jornada e te guia na
-              tecnologia, no seu tempo.
-            </h1>
-            <p>
-              Um guia prático para mulheres e mães que querem ingressar na
-              tecnologia, mas não sabem por onde começar.
-            </p>
-            <div className="hero-actions">
-              <NavLink className="button primary" to="/cadastro">
-                Começar minha jornada
-              </NavLink>
-              <Button
-                variant="secondary"
-                onClick={() =>
-                  document
-                    .getElementById("recursos")
-                    ?.scrollIntoView({ behavior: "smooth" })
-                }
-              >
-                Conhecer a plataforma
-              </Button>
-            </div>
+        <section className="lp-hero" ref={heroRef}>
+          <div className="lp-orbs" aria-hidden="true">
+            {[
+              ["o1", 30],
+              ["o2", -40],
+              ["o3", 24],
+              ["o4", -20],
+              ["o5", 70],
+              ["o6", -60],
+              ["o7", 90],
+            ].map(([cls, depth]) => (
+              <span key={cls} className={`lp-orb ${cls}`} data-depth={depth}>
+                <i />
+              </span>
+            ))}
           </div>
-          <div className="product-preview" aria-label="Prévia do painel ÍRIS">
-            <div className="preview-top">Seu caminho, uma etapa por vez</div>
-            <article>
-              <span className="tag coral">PRÓXIMO PASSO</span>
-              <h3>Descubra sua área na tecnologia</h3>
-              <div className="progress">
-                <i style={{ width: "38%" }} />
+          <div className="lp-hero-inner">
+            <p className="lp-wordmark" aria-hidden="true">
+              IRIS
+            </p>
+            <p className="lp-tagline">
+              Tecnologia, oportunidades e futuro para mulheres
+            </p>
+            <div className="lp-hero-grid">
+              <div>
+                <h1>
+                  Íris: A comunidade que acompanha a sua jornada e te guia na
+                  tecnologia, no seu tempo.
+                </h1>
+                <p className="lp-lead">
+                  Um guia prático para mulheres e mães que querem ingressar na
+                  tecnologia, mas não sabem por onde começar.
+                </p>
+                <div className="lp-actions">
+                  <NavLink className="button primary" to="/cadastro">
+                    Começar minha jornada
+                  </NavLink>
+                  <Button
+                    variant="secondary"
+                    onClick={() =>
+                      document
+                        .getElementById("recursos")
+                        ?.scrollIntoView({ behavior: "smooth" })
+                    }
+                  >
+                    Conhecer a plataforma
+                  </Button>
+                </div>
               </div>
-            </article>
-            <div className="preview-row">
-              <article>
-                <CalendarDays />
-                <strong>3 atividades</strong>
-                <small>para esta semana</small>
-              </article>
-              <article>
-                <BriefcaseBusiness />
-                <strong>6 oportunidades</strong>
-                <small>para explorar</small>
-              </article>
+              <div className="lp-preview-wrap">
+                <div
+                  className="lp-preview glass"
+                  aria-label="Prévia do painel ÍRIS"
+                >
+                  <div className="lp-preview-top">
+                    Seu caminho, uma etapa por vez
+                  </div>
+                  <article>
+                    <span className="tag coral">PRÓXIMO PASSO</span>
+                    <h3>Descubra sua área na tecnologia</h3>
+                    <div className="progress">
+                      <i style={{ width: "38%" }} />
+                    </div>
+                  </article>
+                  <div className="lp-preview-row">
+                    <article>
+                      <CalendarDays />
+                      <strong>3 atividades</strong>
+                      <small>para esta semana</small>
+                    </article>
+                    <article>
+                      <BriefcaseBusiness />
+                      <strong>6 oportunidades</strong>
+                      <small>para explorar</small>
+                    </article>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>
-        <section className="section soft">
-          <span className="eyebrow">Onde o ÍRIS ajuda</span>
-          <h2>Transforme dúvidas em próximos passos</h2>
-          <div className="challenge-grid">
-            {[
-              "Não saber por onde começar",
-              "Encontrar cursos acessíveis",
-              "Conciliar estudo e rotina",
-              "Construir currículo e confiança",
-              "Preparar-se para entrevistas",
-            ].map((x, i) => (
-              <article key={x}>
-                <span>0{i + 1}</span>
-                <p>{x}</p>
-              </article>
-            ))}
-          </div>
-          <aside className="why-iris" aria-labelledby="why-iris-title">
-            <h3 id="why-iris-title">Por que o Íris é para você?</h3>
+
+        <section className="lp-section" id="desafio" aria-labelledby="desafio-title">
+          <header className="lp-head" data-reveal>
+            <span className="eyebrow">O desafio</span>
+            <h2 id="desafio-title">O interesse existe. O que falta é caminho.</h2>
             <p>
-              Conciliar filhos, casa e carreira não é fácil. O Íris foi
-              desenhado para caber no seu tempo e respeitar a sua realidade.
+              Muitas meninas e mulheres querem entrar na tecnologia, mas
+              esbarram na falta de informação, orientação e oportunidades.
             </p>
+          </header>
+          <div className="lp-problem-grid">
+            <article className="lp-stat glass" data-reveal>
+              <p className="lp-stat-number">
+                <span aria-hidden="true">
+                  <CountUp to={19.2} />
+                  <small>%</small>
+                </span>
+                <span className="sr-only">19,2%</span>
+              </p>
+              <p className="lp-stat-text">
+                dos profissionais de tecnologia no Brasil são mulheres.
+              </p>
+              <ul
+                className="lp-people"
+                aria-label="A cada 10 profissionais de tecnologia, 2 são mulheres"
+              >
+                {Array.from({ length: 10 }, (_, i) => (
+                  <li
+                    key={i}
+                    className={i < 2 ? "is-woman" : undefined}
+                    style={v({ "--i": i })}
+                    aria-hidden="true"
+                  >
+                    <UserRound strokeWidth={2.25} />
+                  </li>
+                ))}
+              </ul>
+              <p className="lp-people-caption">
+                A cada 10 profissionais, <strong>apenas 2</strong> são
+                mulheres.
+              </p>
+              <small className="lp-source">
+                Fonte: SOFTEX (2025) — Observatório Softex: Mulheres na
+                Tecnologia
+              </small>
+            </article>
+            <article className="lp-bars glass" data-reveal style={v({ "--i": 1 })}>
+              <h3>Principais dificuldades</h3>
+              <p>
+                Meninas de 15 a 24 anos interessadas em seguir carreira em
+                tecnologia.
+              </p>
+              <ul>
+                {difficulties.map(([label, value, color], i) => (
+                  <li key={label} className={color}>
+                    <span>{label}</span>
+                    <div className="lp-track" aria-hidden="true">
+                      <i style={v({ "--v": value / 50, "--i": i })} />
+                    </div>
+                    <strong>{value}%</strong>
+                  </li>
+                ))}
+              </ul>
+              <small className="lp-source">
+                Fonte: INEP (2023) — Censo da Educação Superior
+              </small>
+            </article>
+          </div>
+          <aside
+            className="why-iris glass"
+            aria-labelledby="why-iris-title"
+            data-reveal
+          >
+            <span aria-hidden="true">
+              <HeartHandshake />
+            </span>
+            <div>
+              <h3 id="why-iris-title">Por que o Íris é para você?</h3>
+              <p>
+                Conciliar filhos, casa e carreira não é fácil. O Íris foi
+                desenhado para caber no seu tempo e respeitar a sua realidade.
+              </p>
+            </div>
           </aside>
         </section>
-        <section className="section" id="recursos">
-          <span className="eyebrow">Recursos conectados</span>
-          <h2>Da descoberta à oportunidade</h2>
-          <div className="feature-grid">
-            {[
-              [
-                "Descubra sua área",
-                "Orientação prática para explorar caminhos em TI.",
-                "/carreira",
-              ],
-              [
-                "Encontre apoio perto de você",
-                "Cursos e espaços demonstrativos em uma só visão.",
-                "/mapa",
-              ],
-              [
-                "Organize sua rotina",
-                "Um plano flexível que respeita sua realidade.",
-                "/rotina",
-              ],
-              [
-                "Prepare-se para oportunidades",
-                "Currículo, entrevistas, mentorias e vagas.",
-                "/mentorias",
-              ],
-            ].map(([t, p, url], i) => (
-              <article key={t} className="feature">
-                <span>0{i + 1}</span>
-                <h3>{t}</h3>
-                <p>{p}</p>
-                <NavLink to={url}>
-                  Explorar <ChevronRight size={16} />
-                </NavLink>
-              </article>
-            ))}
-          </div>
-        </section>
-        <section className="section journey" id="como">
-          <span className="eyebrow">Como funciona</span>
-          <h2>Uma jornada feita de passos concretos</h2>
-          <ol>
-            {[
-              "Conte sua realidade e interesses.",
-              "Descubra caminhos compatíveis com você.",
-              "Encontre cursos e apoios próximos.",
-              "Organize seu plano de estudos.",
-              "Prepare-se para o mercado.",
-            ].map((x, i) => (
-              <li key={x}>
-                <strong>{i + 1}</strong>
-                <span>{x}</span>
+
+        <section className="lp-section" id="como" aria-labelledby="como-title">
+          <header className="lp-head" data-reveal>
+            <span className="eyebrow">Como funciona</span>
+            <h2 id="como-title">
+              Do interesse à entrada na área, um passo de cada vez.
+            </h2>
+            <p>
+              A jornada foi estruturada com Design Thinking a partir das
+              dificuldades que as próprias meninas relataram.
+            </p>
+          </header>
+          <ol className="lp-journey-track" data-reveal>
+            {journeyStages.map(([title, text, Icon, color], i) => (
+              <li key={title} className={color} style={v({ "--i": i })}>
+                <span className="lp-node" aria-hidden="true">
+                  <Icon size={28} />
+                </span>
+                <h3>{title}</h3>
+                <p>{text}</p>
               </li>
             ))}
           </ol>
         </section>
-        <section className="section about" id="sobre">
-          <div>
-            <span className="eyebrow">Sobre o projeto</span>
-            <h2>Tecnologia como instrumento de transformação social.</h2>
+
+        <section
+          className="lp-section"
+          id="recursos"
+          aria-labelledby="recursos-title"
+        >
+          <header className="lp-head" data-reveal>
+            <span className="eyebrow">A plataforma</span>
+            <h2 id="recursos-title">Tudo o que você precisa, num só lugar.</h2>
+            <p>
+              Cursos, orientação, rotina, comunidade e oportunidades conectados
+              — escolha por onde entrar.
+            </p>
+          </header>
+          <div className="lp-resources">
+            {resources.map(([title, text, url, Icon, color], i) => (
+              <NavLink
+                key={url}
+                to={url}
+                className={`lp-card ${color}`}
+                data-reveal
+                style={v({ "--i": i % 3 })}
+              >
+                <span className="lp-card-shine" aria-hidden="true" />
+                <span className="lp-card-icon" aria-hidden="true">
+                  <Icon size={26} />
+                </span>
+                <h3>{title}</h3>
+                <p>{text}</p>
+                <span className="lp-card-go" aria-hidden="true">
+                  Acessar <ArrowRight size={18} />
+                </span>
+              </NavLink>
+            ))}
           </div>
-          <p>
-            O ÍRIS é um protótipo de inclusão, orientação e acesso à tecnologia
-            para mulheres. Ele organiza informações e ferramentas para apoiar
-            decisões com autonomia, sem prometer caminhos únicos.
-          </p>
+        </section>
+
+        <section className="lp-section" id="sobre" aria-labelledby="sobre-title">
+          <div className="lp-about glass" data-reveal>
+            <div className="lp-about-copy">
+              <span className="eyebrow">Sobre o projeto</span>
+              <h2 id="sobre-title">
+                Tecnologia como instrumento de transformação social.
+              </h2>
+              <p>
+                O ÍRIS busca transformar o interesse pela tecnologia em
+                oportunidades reais, reunindo informação, orientação e caminhos
+                de aprendizagem para meninas e mulheres — sem prometer caminhos
+                únicos.
+              </p>
+              <div className="lp-actions">
+                <NavLink className="button primary" to="/cadastro">
+                  Começar minha jornada
+                </NavLink>
+                <NavLink className="button secondary" to="/entrar">
+                  Já tenho acesso
+                </NavLink>
+              </div>
+            </div>
+            <dl className="lp-credits">
+              <div>
+                <dt>Autoras</dt>
+                <dd>Ana Julia Borges, Erica Klemar e Larissa Lee</dd>
+              </div>
+              <div>
+                <dt>Afiliação</dt>
+                <dd>
+                  Conselheiro Crispiniano · orientação de Guilherme Antunes de
+                  Campos
+                </dd>
+              </div>
+              <div>
+                <dt>Referências</dt>
+                <dd>
+                  INEP (2023) — Censo da Educação Superior · SOFTEX (2025) —
+                  Observatório Softex · UNESCO (2015) — Decifrar o código
+                </dd>
+              </div>
+            </dl>
+          </div>
         </section>
       </main>
       <footer>
         <Logo />
         <p>
-          Protótipo demonstrativo. Dados, perfis e oportunidades são fictícios.
+          Protótipo demonstrativo. Perfis e oportunidades são fictícios.
         </p>
         <div>
           <NavLink to="/privacidade">Privacidade</NavLink>
@@ -361,7 +651,10 @@ function AppShell({ children }: { children: ReactNode }) {
             </NavLink>
           ))}
         </nav>
-        <small>Protótipo demonstrativo</small>
+        <div className="aside-foot">
+          <small>Protótipo demonstrativo</small>
+          <ThemeToggle />
+        </div>
       </aside>
       <main id="conteudo" tabIndex={-1}>
         {children}

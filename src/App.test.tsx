@@ -28,12 +28,15 @@ describe("ÍRIS", () => {
         .every((link) => link.getAttribute("href") === "/cadastro"),
     ).toBe(true);
     [
-      "Conte sua realidade e interesses.",
-      "Descubra caminhos compatíveis com você.",
-      "Encontre cursos e apoios próximos.",
-      "Organize seu plano de estudos.",
-      "Prepare-se para o mercado.",
-    ].forEach((step) => expect(screen.getByText(step)).toBeInTheDocument());
+      "Interesse",
+      "Informação",
+      "Orientação",
+      "Formação",
+      "Oportunidade",
+      "Entrada na área",
+    ].forEach((stage) =>
+      expect(screen.getByRole("heading", { name: stage })).toBeInTheDocument(),
+    );
     expect(
       screen.getByRole("heading", { name: "Por que o Íris é para você?" }),
     ).toBeInTheDocument();
