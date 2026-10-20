@@ -14,8 +14,33 @@ describe("ÍRIS", () => {
     );
     expect(
       screen.getByRole("heading", {
-        name: /Seu próximo capítulo profissional começa aqui/i,
+        name: "Íris: A comunidade que acompanha a sua jornada e te guia na tecnologia, no seu tempo.",
       }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Um guia prático para mulheres e mães que querem ingressar na tecnologia, mas não sabem por onde começar.",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen
+        .getAllByRole("link", { name: "Começar minha jornada" })
+        .every((link) => link.getAttribute("href") === "/cadastro"),
+    ).toBe(true);
+    [
+      "Conte sua realidade e interesses.",
+      "Descubra caminhos compatíveis com você.",
+      "Encontre cursos e apoios próximos.",
+      "Organize seu plano de estudos.",
+      "Prepare-se para o mercado.",
+    ].forEach((step) => expect(screen.getByText(step)).toBeInTheDocument());
+    expect(
+      screen.getByRole("heading", { name: "Por que o Íris é para você?" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Conciliar filhos, casa e carreira não é fácil. O Íris foi desenhado para caber no seu tempo e respeitar a sua realidade.",
+      ),
     ).toBeInTheDocument();
   });
 
@@ -38,8 +63,19 @@ describe("ÍRIS", () => {
     );
     expect(
       screen.getByRole("heading", {
-        name: /Seu próximo capítulo profissional começa aqui/i,
+        name: "Íris: A comunidade que acompanha a sua jornada e te guia na tecnologia, no seu tempo.",
       }),
+    ).toBeInTheDocument();
+  });
+
+  it("destaca que o teste cabe em uma pausa", () => {
+    render(
+      <MemoryRouter initialEntries={["/carreira"]}>
+        <App />
+      </MemoryRouter>,
+    );
+    expect(
+      screen.getByText("3–5 minutos · faça em uma pausa do seu dia"),
     ).toBeInTheDocument();
   });
 
@@ -97,6 +133,26 @@ describe("ÍRIS", () => {
         name: /Oportunidades para experimentar caminhos/i,
       }),
     ).toBeInTheDocument();
+  });
+
+  it("resume as áreas em listas e destaca a ação de planejamento", () => {
+    render(
+      <MemoryRouter initialEntries={["/carreira/resultado"]}>
+        <App />
+      </MemoryRouter>,
+    );
+    expect(
+      screen.getByRole("list", {
+        name: "Destaques de Desenvolvimento de software",
+      }),
+    ).toHaveTextContent(
+      "Construa páginas e aplicativos desde os primeiros estudos.",
+    );
+    expect(
+      screen
+        .getAllByRole("button", { name: "Adicionar ao meu plano" })
+        .every((button) => button.classList.contains("primary")),
+    ).toBe(true);
   });
 
   it("oferece exemplo completo de currículo e treino técnico por área", () => {

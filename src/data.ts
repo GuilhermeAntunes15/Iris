@@ -12,7 +12,7 @@ export const careers: Record<
   CareerKey,
   {
     name: string;
-    intro: string;
+    highlights: string[];
     skills: string[];
     activities: string[];
     course: string;
@@ -21,8 +21,10 @@ export const careers: Record<
 > = {
   dev: {
     name: "Desenvolvimento de software",
-    intro:
-      "Criar sites, aplicativos e soluções digitais pode ser um caminho interessante para você explorar.",
+    highlights: [
+      "Construa páginas e aplicativos desde os primeiros estudos.",
+      "Veja suas ideias funcionando na prática.",
+    ],
     skills: ["Lógica", "HTML e CSS", "JavaScript"],
     activities: [
       "Escrever código",
@@ -34,8 +36,10 @@ export const careers: Record<
   },
   dados: {
     name: "Dados e inteligência de negócios",
-    intro:
-      "Transformar informações em decisões combina análise, curiosidade e comunicação.",
+    highlights: [
+      "Transforme informações em respostas claras.",
+      "Comece com planilhas e visualizações simples.",
+    ],
     skills: ["Planilhas", "Estatística básica", "Visualização"],
     activities: [
       "Organizar dados",
@@ -47,8 +51,10 @@ export const careers: Record<
   },
   qa: {
     name: "Qualidade e testes de software",
-    intro:
-      "Investigar comportamentos e tornar produtos mais confiáveis pode aproveitar sua atenção aos detalhes.",
+    highlights: [
+      "Use sua atenção aos detalhes para encontrar falhas.",
+      "Ajude a tornar produtos digitais mais confiáveis.",
+    ],
     skills: ["Testes", "Pensamento crítico", "Documentação"],
     activities: ["Planejar testes", "Encontrar falhas", "Apoiar melhorias"],
     course: "Introdução à qualidade de software",
@@ -56,8 +62,10 @@ export const careers: Record<
   },
   ux: {
     name: "UX/UI e design de produtos",
-    intro:
-      "Entender pessoas e criar experiências mais claras une criatividade, pesquisa e organização.",
+    highlights: [
+      "Combine criatividade, pesquisa e organização.",
+      "Crie experiências mais claras e acessíveis.",
+    ],
     skills: ["Pesquisa", "Prototipação", "Acessibilidade"],
     activities: ["Entrevistar pessoas", "Desenhar fluxos", "Testar interfaces"],
     course: "Primeiros passos em UX/UI",
@@ -65,8 +73,10 @@ export const careers: Record<
   },
   cyber: {
     name: "Cibersegurança e infraestrutura",
-    intro:
-      "Proteger sistemas e investigar riscos é uma área para quem aprecia análise e aprendizado contínuo.",
+    highlights: [
+      "Aprenda a reconhecer riscos e proteger acessos.",
+      "Explore investigação e aprendizado contínuo.",
+    ],
     skills: ["Redes", "Segurança digital", "Investigação"],
     activities: [
       "Analisar riscos",
@@ -78,8 +88,10 @@ export const careers: Record<
   },
   produto: {
     name: "Análise, produtos e projetos",
-    intro:
-      "Conectar necessidades, pessoas e entregas pode combinar com seu senso de organização e comunicação.",
+    highlights: [
+      "Conecte necessidades, pessoas e entregas.",
+      "Use organização e comunicação para orientar decisões.",
+    ],
     skills: ["Planejamento", "Comunicação", "Análise de requisitos"],
     activities: [
       "Organizar prioridades",

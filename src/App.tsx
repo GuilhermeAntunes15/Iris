@@ -169,7 +169,6 @@ function PublicHeader() {
 }
 
 function Landing() {
-  const navigate = useNavigate();
   return (
     <div className="landing">
       <PublicHeader />
@@ -180,16 +179,18 @@ function Landing() {
               <Sparkles size={16} /> Um caminho possível, no seu ritmo
             </span>
             <Logo large />
-            <h1>Seu próximo capítulo profissional começa aqui.</h1>
+            <h1>
+              Íris: A comunidade que acompanha a sua jornada e te guia na
+              tecnologia, no seu tempo.
+            </h1>
             <p>
-              O ÍRIS conecta mulheres à tecnologia por meio de orientação
-              profissional, oportunidades de formação, apoio à rotina e
-              preparação para o mercado de trabalho.
+              Um guia prático para mulheres e mães que querem ingressar na
+              tecnologia, mas não sabem por onde começar.
             </p>
             <div className="hero-actions">
-              <Button onClick={() => navigate("/carreira")}>
-                Descobrir minha área
-              </Button>
+              <NavLink className="button primary" to="/cadastro">
+                Começar minha jornada
+              </NavLink>
               <Button
                 variant="secondary"
                 onClick={() =>
@@ -242,6 +243,13 @@ function Landing() {
               </article>
             ))}
           </div>
+          <aside className="why-iris" aria-labelledby="why-iris-title">
+            <h3 id="why-iris-title">Por que o Íris é para você?</h3>
+            <p>
+              Conciliar filhos, casa e carreira não é fácil. O Íris foi
+              desenhado para caber no seu tempo e respeitar a sua realidade.
+            </p>
+          </aside>
         </section>
         <section className="section" id="recursos">
           <span className="eyebrow">Recursos conectados</span>
@@ -269,7 +277,7 @@ function Landing() {
                 "/mentorias",
               ],
             ].map(([t, p, url], i) => (
-              <article key={t} className={`feature f${i}`}>
+              <article key={t} className="feature">
                 <span>0{i + 1}</span>
                 <h3>{t}</h3>
                 <p>{p}</p>
@@ -285,11 +293,11 @@ function Landing() {
           <h2>Uma jornada feita de passos concretos</h2>
           <ol>
             {[
-              "Conte sobre seus interesses e sua realidade.",
-              "Descubra caminhos profissionais compatíveis.",
-              "Encontre cursos, recursos e oportunidades.",
-              "Organize seu plano de desenvolvimento.",
-              "Prepare-se para entrar ou retornar ao mercado.",
+              "Conte sua realidade e interesses.",
+              "Descubra caminhos compatíveis com você.",
+              "Encontre cursos e apoios próximos.",
+              "Organize seu plano de estudos.",
+              "Prepare-se para o mercado.",
             ].map((x, i) => (
               <li key={x}>
                 <strong>{i + 1}</strong>
@@ -712,7 +720,9 @@ function Career({ store }: { store: Store }) {
         intro="Responda a algumas perguntas sobre seus interesses. Não existe resposta certa ou errada."
       >
         <div className="card intro-card">
-          <div className="time-pill">3–5 minutos · 12 perguntas</div>
+          <div className="time-pill">
+            3–5 minutos · faça em uma pausa do seu dia
+          </div>
           <h2>Uma orientação, não um diagnóstico.</h2>
           <p>Ao final, você verá três áreas para conhecer e experimentar.</p>
           <Button onClick={() => setStarted(true)}>Começar teste</Button>
@@ -818,7 +828,14 @@ function CareerResult({ store }: { store: Store }) {
                 · {scores[key] || 0} pontos
               </span>
               <h2>{c.name}</h2>
-              <p>{c.intro}</p>
+              <ul
+                className="result-highlights"
+                aria-label={`Destaques de ${c.name}`}
+              >
+                {c.highlights.map((highlight) => (
+                  <li key={highlight}>{highlight}</li>
+                ))}
+              </ul>
               <h3>Atividades comuns</h3>
               <ul>
                 {c.activities.map((x) => (
@@ -839,7 +856,7 @@ function CareerResult({ store }: { store: Store }) {
                 <strong>Curso sugerido:</strong> {c.course}
               </p>
               <Button
-                variant={i ? "secondary" : "primary"}
+                variant="primary"
                 onClick={() =>
                   store.setState((s) => ({
                     ...s,
